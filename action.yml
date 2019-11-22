@@ -1,10 +1,34 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: "Upload Release Asset"
+description: "Upload a release asset to an existing release on your repository"
+author: "GitHub"
 inputs:
-  myInput:              # change this
-    description: 'input description here'
-    default: 'default value if applicable'
+  owner:
+    description: "target owner name, https://github.com/{owner}/{repo}"
+    required: false
+  repo:
+    description: "target repo name, https://github.com/{owner}/{repo}"
+    required: false
+  tag_name:
+    description: "tag_name"
+    required: false
+  release_name:
+    description: "release_name"
+    required: false
+  asset_path:
+    description: "The path to the asset you want to upload"
+    required: true
+  asset_name:
+    description: "The name of the asset you want to upload"
+    required: false
+  asset_content_type:
+    description: "The content-type of the asset you want to upload. See the supported Media Types here: https://www.iana.org/assignments/media-types/media-types.xhtml for more information"
+    required: false
+  override:
+    description: "override"
+    required: false
 runs:
-  using: 'node12'
-  main: 'lib/main.js'
+  using: "node12"
+  main: "dist/index.js"
+branding:
+  icon: "package"
+  color: "gray-dark"

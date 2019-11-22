@@ -1,30 +1,33 @@
 {
-  "name": "typescript-action",
+  "name": "upload-release-asset",
   "version": "0.0.0",
   "private": true,
-  "description": "TypeScript template action",
-  "main": "lib/main.js",
+  "description": "Upload a release asset to an existing GitHub Release",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "build": "ncc build src/main.ts -o dist",
+    "precommit": "npm run build && git add dist/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/lomocc/typescript-action.git"
   },
   "keywords": [
     "actions",
     "node",
-    "setup"
+    "upload-release-asset"
   ],
   "author": "YourNameOrOrganization",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.0.0"
+    "@actions/core": "^1.0.0",
+    "@actions/github": "^1.1.0"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
     "@types/node": "^12.0.4",
+    "@zeit/ncc": "^0.20.5",
     "jest": "^24.8.0",
     "jest-circus": "^24.7.1",
     "ts-jest": "^24.0.2",
