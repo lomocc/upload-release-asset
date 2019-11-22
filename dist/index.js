@@ -3287,7 +3287,9 @@ function uploadReleaseAsset() {
         try {
             // Get authenticated GitHub client (Ocktokit): https://github.com/actions/toolkit/tree/master/packages/github#usage
             // @ts-ignore
-            const github = new github_1.GitHub(process.env.GITHUB_TOKEN);
+            let timeZone = process.env.TZ || process.env.TIME_ZONE;
+            // @ts-ignore
+            const github = new github_1.GitHub(process.env.GITHUB_TOKEN, { timeZone });
             // Get owner and repo from context of payload that triggered the action
             // const { owner, repo } = context.repo;
             const owner = core.getInput("owner", { required: false }) || github_1.context.repo.owner;
