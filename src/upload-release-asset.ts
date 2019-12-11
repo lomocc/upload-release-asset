@@ -1,6 +1,9 @@
 import * as core from "@actions/core";
 import { context, GitHub } from "@actions/github";
 import fs from "fs";
+import glob from "glob";
+import mime from "mime-types";
+import path from "path";
 
 export async function uploadReleaseAsset() {
   try {
@@ -78,12 +81,6 @@ export async function uploadReleaseAsset() {
 
     // Get the inputs from the workflow file: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
     const assetPath = core.getInput("asset_path", { required: true });
-    const assetName =
-      core.getInput("asset_name", { required: false }) ||
-      assetPath.replace(/^.*(\\|\/)(.+\..*)$/, "$2");
-    const assetContentType =
-      core.getInput("asset_content_type", { required: false }) ||
-      "application/octet-stream";
 
     // Check for duplicates.
     const assetsResponse = await github.repos.listAssetsForRelease({
@@ -91,51 +88,47 @@ export async function uploadReleaseAsset() {
       repo,
       release_id: releaseId
     });
-    const duplicateAsset = assetsResponse.data.find(
-      asset => asset.name === assetName
-    );
-    if (duplicateAsset) {
-      if (override) {
-        core.debug(
-          `An asset called ${assetName} already exists in release ${tag} so we'll overwrite it.`
-        );
-        await github.repos.deleteReleaseAsset({
-          owner,
-          repo,
-          asset_id: duplicateAsset.id
+
+    let files = glob.sync(assetPath);
+    for (let i = 0; i < files.length; i++) {
+      let assetPath = files[i];
+      let assetName = path.basename(assetPath);
+      let duplicateAsset = assetsResponse.data.find(
+        asset => asset.name === assetName
+      );
+      if (duplicateAsset) {
+        if (override) {
+          await github.repos.deleteReleaseAsset({
+            owner,
+            repo,
+            asset_id: duplicateAsset.id
+          });
+          core.debug(`Delete Duplicate Asset: ${assetName}`);
+        } else {
+          continue;
+        }
+      }
+      try {
+        let contentType = mime.lookup(assetName);
+        let contentLength = fs.statSync(assetPath).size;
+        let file = fs.readFileSync(assetPath);
+        // Upload a release asset
+        // API Documentation: https://developer.github.com/v3/repos/releases/#upload-a-release-asset
+        // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-upload-release-asset
+        await github.repos.uploadReleaseAsset({
+          url: uploadUrl,
+          headers: {
+            "content-type": contentType,
+            "content-length": contentLength
+          },
+          name: assetName,
+          file
         });
-      } else {
-        core.setFailed(`An asset called ${assetName} already exists.`);
-        return;
+        core.debug(`Upload Asset Success: ${assetName} - ${assetPath}`);
+      } catch (error) {
+        core.warning(`Upload Asset Fail: ${assetName}, ${error.message}`);
       }
     }
-
-    // Determine content-length for header to upload asset
-    const assetContentLength = fs.statSync(assetPath).size;
-
-    // Setup headers for API call, see Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-upload-release-asset for more information
-    const headers = {
-      "content-type": assetContentType,
-      "content-length": assetContentLength
-    };
-
-    // Upload a release asset
-    // API Documentation: https://developer.github.com/v3/repos/releases/#upload-a-release-asset
-    // Octokit Documentation: https://octokit.github.io/rest.js/#octokit-routes-repos-upload-release-asset
-    const uploadAssetResponse = await github.repos.uploadReleaseAsset({
-      url: uploadUrl,
-      headers,
-      name: assetName,
-      file: fs.readFileSync(assetPath)
-    });
-
-    // Get the browser_download_url for the uploaded release asset from the response
-    const {
-      data: { browser_download_url: browserDownloadUrl }
-    } = uploadAssetResponse;
-
-    // Set the output variable for use by other actions: https://github.com/actions/toolkit/tree/master/packages/core#inputsoutputs
-    core.setOutput("browser_download_url", browserDownloadUrl);
   } catch (error) {
     core.setFailed(error.message);
   }
