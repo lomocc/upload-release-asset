@@ -27,5 +27,5 @@ Upload Github Release Asset
     repo: ${{ secrets.RELEASE_GITHUB_REPO }}
     tag_name: ${{ github.ref }}
     release_name: Release ${{ github.ref }}
-    asset_path: dist/GXWorkInstaller.dmg # required
+    asset_path: dist/GXWorkSetup*{.exe,.dmg} # required
 ```
