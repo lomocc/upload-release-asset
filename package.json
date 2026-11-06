@@ -1,0 +1,38 @@
+{
+  "name": "upload-release-asset",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Upload a release asset to an existing GitHub Release",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest",
+    "build": "ncc build src/main.ts -o dist",
+    "precommit": "npm run build && git add dist/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lomocc/typescript-action.git"
+  },
+  "keywords": [
+    "actions",
+    "node",
+    "upload-release-asset"
+  ],
+  "author": "YourNameOrOrganization",
+  "license": "MIT",
+  "dependencies": {
+    "@actions/core": "^1.9.1",
+    "@actions/github": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.13",
+    "@types/node": "^12.0.4",
+    "@zeit/ncc": "^0.20.5",
+    "glob": "^7.1.6",
+    "jest": "^24.8.0",
+    "jest-circus": "^24.7.1",
+    "mime-types": "^2.1.25",
+    "ts-jest": "^24.0.2",
+    "typescript": "^3.5.1"
+  }
+}
